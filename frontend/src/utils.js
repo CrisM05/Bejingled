@@ -79,6 +79,60 @@ export const areNextToEachOther = (coord1, coord2) => {
 };
 
 export const getCoordsFromString = (str) => {
-  const [num,letter] = str.split('');
+  const [num, letter] = str.split("");
   return [+num - 1, letter.charCodeAt(0) % 65];
-}
+};
+
+export const findHorizontalCombos = (board) => {
+  console.log("Checking for vertical matches.");
+  let output = [];
+  for (let j = 0; j < board[0].length; j++) {
+    let count = 1;
+    let start = 0;
+    for (let i = 1; i < board.length; i++) {
+      if (board[i][j] === board[i - 1][j]) {
+        count++;
+        if (count >= 3) {
+          if (i === board.length - 1) {
+            output.push([start, j]);
+          }
+        }
+      } else {
+        if (count >= 3) {
+          output.push([start, j]);
+        }
+        count = 1;
+        start = i;
+      }
+    }
+  }
+  return output;
+};
+
+
+export const findVerticalCombos = (board) => {
+  console.log("Checking for horizontal matches.");
+  let output = [];
+  for (let i = 0; i < board.length; i++) {
+    let count = 1;
+    let start = 0;
+    for (let j = 1; j < board[i].length; j++) {
+      if (board[i][j] === board[i][j - 1]) {
+        count++;
+        if (count >= 3) {
+          if (j === board[i].length - 1) {
+            output.push([i, start]);
+          }
+        }
+      } else {
+        if (count >= 3) {
+          output.push([i, start]);
+        }
+        count = 1;
+        start = j;
+      }
+    }
+  }
+  return output;
+};
+

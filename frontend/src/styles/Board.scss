@@ -14,6 +14,7 @@
   display: flex;
   height: auto;
   margin: auto;
+  flex-direction: column;
 }
 #board-wrapper {
   display: flex;
@@ -26,8 +27,8 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   flex-direction: column;
   width: fit-content;
 }
