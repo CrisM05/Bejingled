@@ -83,7 +83,7 @@ export const getCoordsFromString = (str) => {
   return [+num - 1, letter.charCodeAt(0) % 65];
 };
 
-export const findHorizontalCombos = (board) => {
+export const findVerticalCombos = (board) => {
   console.log("Checking for vertical matches.");
   let output = [];
   for (let j = 0; j < board[0].length; j++) {
@@ -110,7 +110,7 @@ export const findHorizontalCombos = (board) => {
 };
 
 
-export const findVerticalCombos = (board) => {
+export const findHorizontalCombos = (board) => {
   console.log("Checking for horizontal matches.");
   let output = [];
   for (let i = 0; i < board.length; i++) {
@@ -136,3 +136,32 @@ export const findVerticalCombos = (board) => {
   return output;
 };
 
+export const findCoordsOfMatches = (hor,ver,board) => {
+  const coords = new Set();
+  for (const coor of hor) {
+    // console.log(coor);
+    const [x,y] = coor;
+    let pointer = y;
+    while(board[x][pointer] === board[x][y]) {
+      // console.log(pointer,board[x][pointer],board[x][y],board[x].length);
+      // console.log(pointer <= board[x].length && board[x][pointer] === board[x][y])
+      // console.log(x,y)
+      coords.add(`${x}${pointer++}`);
+    }
+  }
+
+  for (const coord of ver) {
+    const [x,y] = coord;
+    // console.log(coord);
+    let pointer = x;
+    while(board[pointer][y] === board[x][y]) {
+      coords.add(`${pointer++}${y}`);
+    }
+  }
+  
+  return coords;
+}
+
+export const clearCoords = (coord,board) => {
+  
+}
