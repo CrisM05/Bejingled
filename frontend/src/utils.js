@@ -84,7 +84,7 @@ export const getCoordsFromString = (str) => {
 };
 
 export const findVerticalCombos = (board) => {
-  console.log("Checking for vertical matches.");
+  // console.log("Checking for vertical matches.");
   let output = [];
   for (let j = 0; j < board[0].length; j++) {
     let count = 1;
@@ -109,9 +109,8 @@ export const findVerticalCombos = (board) => {
   return output;
 };
 
-
 export const findHorizontalCombos = (board) => {
-  console.log("Checking for horizontal matches.");
+  // console.log("Checking for horizontal matches.");
   let output = [];
   for (let i = 0; i < board.length; i++) {
     let count = 1;
@@ -136,13 +135,13 @@ export const findHorizontalCombos = (board) => {
   return output;
 };
 
-export const findCoordsOfMatches = (hor,ver,board) => {
+export const findCoordsOfMatches = (hor, ver, board) => {
   const coords = new Set();
-  for (const coor of hor) {
-    // console.log(coor);
-    const [x,y] = coor;
+  for (const coord of hor) {
+    // console.log(coord);
+    const [x, y] = coord;
     let pointer = y;
-    while(board[x][pointer] === board[x][y]) {
+    while (pointer < board[x].length && board[x][pointer] === board[x][y]) {
       // console.log(pointer,board[x][pointer],board[x][y],board[x].length);
       // console.log(pointer <= board[x].length && board[x][pointer] === board[x][y])
       // console.log(x,y)
@@ -151,17 +150,95 @@ export const findCoordsOfMatches = (hor,ver,board) => {
   }
 
   for (const coord of ver) {
-    const [x,y] = coord;
+    const [x, y] = coord;
     // console.log(coord);
     let pointer = x;
-    while(board[pointer][y] === board[x][y]) {
+    while (pointer < board.length && board[pointer][y] === board[x][y]) {
       coords.add(`${pointer++}${y}`);
     }
   }
-  
-  return coords;
-}
 
-export const clearCoords = (coord,board) => {
-  
-}
+  return coords;
+};
+
+export const clearCoords = (coords, board) => {
+  const clone = JSON.parse(JSON.stringify(board));
+  for (const coord of coords) {
+    const [x, y] = coord.split("");
+    clone[x][y] = "white";
+  }
+  return clone;
+};
+
+export const dropJewels = (coords, board) => {
+  const clone = getBoardClone(board);
+  const col = countNumInColumn(coords);
+  coords = setToArray(coords);
+
+  for (const c of col) {
+    const [idx, count] = c;
+    if (clone[0][idx] !== "white") {
+      let row = 1;
+      coords.forEach((el) => (row = +el[1] === idx ? +el[0] : row));
+      // console.log(row - count);
+      for (let i = row - count; i >= 0; i--, row--) {
+        clone[row][idx] = board[i][idx];
+      }
+      for (let i = 0; i < count; i++) {
+        clone[i][idx] = "white";
+      }
+    }
+    // setTimeout(() => {
+      for (let i = clone.length-1; i >= 0; i--) {
+        for (let j = clone[i].length-1; j >= 0; j--) {
+          if (clone[i][j] === 'white'){
+            console.log(clone[i][j]);
+            clone[i][j] = getRandomColor();
+          }
+        }
+      }
+    // },200)
+  }
+  return clone;
+};
+
+// export const fillBoard = (board) => {
+//   const clone = getBoardClone(board);
+//   for (let i = clone.length - 1; i > 0; i--) {
+//     for (let j = clone[i].length - 1; j >=0; j--) {
+//       if (clone[i][j] === "white") {
+//         clone[i][j] = getRandomColor();
+//       }
+//     }
+//   }
+//   return clone;
+// }
+
+export const countNumInColumn = (coords) => {
+  const tracker = {};
+  const output = [];
+  coords = setToArray(coords);
+  for (const coord of coords) {
+    const [row, col] = coord.split("");
+    if (col in tracker) {
+      tracker[col]++;
+    } else {
+      tracker[col] = 1;
+    }
+  }
+
+  for (const key in tracker) {
+    output.push([+key, tracker[key]]);
+  }
+  return output;
+};
+
+export const setToArray = (set) => {
+  const output = [];
+  set.forEach((el) => output.push(el));
+  return output;
+};
+
+export const getBoardClone = (board) => {
+  return JSON.parse(JSON.stringify(board));
+};

@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { areNextToEachOther, findCoordsOfMatches, findHorizontalCombos, findVerticalCombos, getCoordsFromString } from "../utils.js";
+import {
+  areNextToEachOther,
+  clearCoords,
+  countNumInColumn,
+  dropJewels,
+  findCoordsOfMatches,
+  findHorizontalCombos,
+  findVerticalCombos,
+  getCoordsFromString,
+} from "../utils.js";
 
 const Jewel = ({
   coord,
@@ -8,14 +17,14 @@ const Jewel = ({
   color,
   board,
   setBoard,
-  setBadMove
+  setBadMove,
 }) => {
   // let selected = false;
   // const [selected, setSelected] = useState(false);
   // const [color, setColor] = useState(getRandomColor());
 
   const select = (e) => {
-    console.log(coord, getCoordsFromString(coord));
+    // console.log(coord, getCoordsFromString(coord));
     if (chosen && chosen === coord) {
       setChosen(null);
     }
@@ -35,16 +44,29 @@ const Jewel = ({
       // console.log(typeof(getCoordsFromString(coord).join('')));
       const hor = findHorizontalCombos(clone);
       const ver = findVerticalCombos(clone);
-      const all = findCoordsOfMatches(hor,ver,clone);
+      const all = findCoordsOfMatches(hor, ver, clone);
+      // console.log(hor);
+      // console.log(ver);
+      // console.log(all);
 
-      if (all.has(getCoordsFromString(coord).join(''))) {
-        
+      if (
+        all.has(getCoordsFromString(coord).join("")) ||
+        all.has(getCoordsFromString(chosen).join(""))
+      ) {
+        setBoard(clearCoords(all, clone));
+        countNumInColumn(all).forEach(el => console.log(el));
+        setTimeout(() => {
+          setBoard(dropJewels(all,board));
+        },250)
+        // dropJewels(all,clone);
+
       } else {
         setBadMove(true);
         setTimeout(() => {
           setBoard(original);
           setBadMove(false);
         }, 500);
+        
       }
     } else {
       setChosen(coord);
@@ -58,7 +80,9 @@ const Jewel = ({
     // } else {
     //   setSelected(false);
     // }
-  }, [chosen]);
+    // console.log(findHorizontalCombos(board));
+    // console.log(findVerticalCombos(board));
+  }, [board]);
 
   return (
     <p

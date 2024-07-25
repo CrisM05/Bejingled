@@ -22,9 +22,9 @@ const Board = ({ length, height }) => {
     const vert = findVerticalCombos(board)
     setHCombos(horz);
     setVCombos(vert);
-    if (horz.length > 0 || vert.length > 0) {
-      console.log(findCoordsOfMatches(horz,vert,board));
-    }
+    // if (horz.length > 0 || vert.length > 0) {
+    //   console.log(findCoordsOfMatches(horz,vert,board));
+    // }
   },[board])
   
   return (
