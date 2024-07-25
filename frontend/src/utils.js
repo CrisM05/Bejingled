@@ -192,12 +192,16 @@ export const dropJewels = (coords, board) => {
       for (let i = clone.length-1; i >= 0; i--) {
         for (let j = clone[i].length-1; j >= 0; j--) {
           if (clone[i][j] === 'white'){
-            console.log(clone[i][j]);
+            // console.log(clone[i][j]);
             clone[i][j] = getRandomColor();
           }
         }
       }
     // },200)
+    // if (check.size > 0) {
+    //   // return dropJewels(check,clone);
+    //   console.log(check);
+    // }
   }
   return clone;
 };

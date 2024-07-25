@@ -18,6 +18,8 @@ const Jewel = ({
   board,
   setBoard,
   setBadMove,
+  setScore,
+  score
 }) => {
   // let selected = false;
   // const [selected, setSelected] = useState(false);
@@ -29,7 +31,7 @@ const Jewel = ({
       setChosen(null);
     }
     if (chosen && areNextToEachOther(chosen, coord)) {
-      const clone = JSON.parse(JSON.stringify(board));
+      let clone = JSON.parse(JSON.stringify(board));
       const original = JSON.parse(JSON.stringify(board));
       const [x1, y1] = getCoordsFromString(chosen);
       const [x2, y2] = getCoordsFromString(coord);
@@ -42,23 +44,40 @@ const Jewel = ({
       setChosen(null);
       // console.log(findHorizontalCombos(clone),findVerticalCombos(clone));
       // console.log(typeof(getCoordsFromString(coord).join('')));
-      const hor = findHorizontalCombos(clone);
-      const ver = findVerticalCombos(clone);
-      const all = findCoordsOfMatches(hor, ver, clone);
+      let hor = findHorizontalCombos(clone);
+      let ver = findVerticalCombos(clone);
+      let all = findCoordsOfMatches(hor, ver, clone);
+      let count = 0;
+      let bazinga = true;
+      let cloneScore = score
       // console.log(hor);
       // console.log(ver);
       // console.log(all);
 
       if (
-        all.has(getCoordsFromString(coord).join("")) ||
-        all.has(getCoordsFromString(chosen).join(""))
+        // all.has(getCoordsFromString(coord).join("")) ||
+        // all.has(getCoordsFromString(chosen).join(""))
+        all.size > 0
       ) {
-        setBoard(clearCoords(all, clone));
-        countNumInColumn(all).forEach(el => console.log(el));
-        setTimeout(() => {
-          setBoard(dropJewels(all,board));
-        },250)
-        // dropJewels(all,clone);
+        while(count < 10 && bazinga) {
+          console.log(count);
+          setBoard(clearCoords(all, clone));
+          // countNumInColumn(all).forEach(el => console.log(el));
+          clone = dropJewels(all,clone);
+          setScore(score + all.size);
+          const check = findCoordsOfMatches(findHorizontalCombos(clone),findVerticalCombos(clone),clone);
+          if (check.size === 0) {
+            bazinga = false;
+          }
+          // dropJewels(all,clone);
+          hor = findHorizontalCombos(clone);
+          ver = findVerticalCombos(clone);
+          all = findCoordsOfMatches(hor, ver, clone);
+          setTimeout(() => {
+            setBoard(clone);
+          },count === 0 ? 250 : 500)
+          count++;
+        }
 
       } else {
         setBadMove(true);
