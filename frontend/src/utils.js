@@ -251,7 +251,9 @@ export const checkForPossibleMatches = (board) => {
   for (let i = 0; i < board.length; i++) {
     for (let j = 0; j < board[i].length; j++) {
       const jewel = board[i][j];
-
+      if (board[i][j] === 'white') {
+        continue;
+      }
       // For [X,?,x] matches
       if (j < board[i].length - 1 && jewel === board[i][j + 2]) {
         //     [?,x,?]
@@ -315,7 +317,7 @@ export const checkForPossibleMatches = (board) => {
           j < board[i].length - 2 &&
           jewel === board[i + 1][j + 2]
         ) {
-          console.log([i, j], [i + 1, j + 1]);
+          console.log([i, j], [i + 1, j + 2]);
           return true;
         }
         //For [x,?,X,x,]
@@ -360,7 +362,7 @@ export const checkForPossibleMatches = (board) => {
         //    [?,x,?]
         //    [x,?,?]
         if (i < board.length - 2 && j > 0 && jewel === board[i + 2][j - 1]) {
-          console.log([i,j],[i+2,j-1]);
+          console.log([i,j],[i+1,j]);
           return true;
         }
         //For [?,X,?]
@@ -379,7 +381,7 @@ export const checkForPossibleMatches = (board) => {
         //    [?]
         //    [x]
         if (i < board.length - 3 && jewel === board[i + 3][j]) {
-          console.log([i,j],[i+3,j]);
+          console.log([i,j],[i+1,j]);
           return true;
         }
       }
@@ -401,8 +403,8 @@ export const computeNextMoves = (board) => {
     output.push([boardToString(clone), all.size]);
     clone = dropJewels(all, clone);
     output.push(boardToString(clone));
-    // clone = fillBoard(clone);
-    // output.push(boardToString(clone));
+    clone = fillBoard(clone);
+    output.push(boardToString(clone));
     hor = findHorizontalCombos(clone);
     ver = findVerticalCombos(clone);
     all = findCoordsOfMatches(hor, ver, clone);

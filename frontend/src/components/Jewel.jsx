@@ -24,7 +24,7 @@ const Jewel = ({
   setCanMove,
   bazinga,
 }) => {
-  const {canBazinga, setCanBazinga} = useContext(boardContext);
+  const {canBazinga, setCanBazinga , setGameJover} = useContext(boardContext);
   const select = (e) => {
     if (!canMove ) {
       return
@@ -86,8 +86,13 @@ const Jewel = ({
               setCanBazinga(true);
               refresh = true;
             }
-            if (!checkForPossibleMatches(clone) && refresh) {
-              bazinga();
+            if (!checkForPossibleMatches(clone) ) {
+              if (refresh ) {
+                console.log("BAZINGA");
+                bazinga();
+              } else {
+                setGameJover(true);
+              }
             }
             setCanMove(true);
 

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Jewel from "./Jewel";
 import "../styles/Board.scss";
-import { bazingaBoard, stringToBoard } from "../utils";
+import { bazingaBoard, stringToBoard, checkForPossibleMatches } from "../utils";
 import boardContext from "../contexts/BoardContext";
 
 const Board = ({ length, height }) => {
@@ -13,11 +13,15 @@ const Board = ({ length, height }) => {
   const [badMove, setBadMove] = useState(false);
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
   const [score, setScore] = useState(0);
-  const { setCanBazinga } = useContext(boardContext);
+  const { canBazinga, setCanBazinga, setYippie, gameJover } = useContext(boardContext);
 
-  const bazinga = () => {
-    const moves = bazingaBoard(board);
+  const bazinga = (yip = true) => {
+    let moves = bazingaBoard(board);
+    while(!checkForPossibleMatches(stringToBoard(moves[moves.length-1]))) {
+      moves = bazingaBoard(board);
+    }
     setCanMove(false);
+    setYippie(yip);
     // console.log(moves);
     let pointer = 0;
     const id = setInterval(() => {
@@ -27,19 +31,18 @@ const Board = ({ length, height }) => {
         clearInterval(id);
         setCanMove(true);
         setCanBazinga(false);
+        setYippie(false);
       }
     }, 70);
   };
 
   useEffect(() => {
-    bazinga()
+    bazinga(false)
   }, []);
 
 
   return (
     <>
-      <h2>Score:</h2>
-      <p>{score}</p>
       <div className={`board ${badMove ? "badMove" : ""}`}>
         {board.map((row, idx) => (
           <span key={idx} className="row" id={`row${idx}`}>
@@ -62,6 +65,12 @@ const Board = ({ length, height }) => {
             ))}
           </span>
         ))}
+        <span id="score-wrapper">
+          <h2>Score:</h2>
+          <p>{score}</p>
+        </span>
+        {canBazinga && <p id="bazinga">BAZINGA</p>}
+        {gameJover && <button onClick={() => bazinga(false)}>Replay?</button>}
       </div>
     </>
   );
