@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   areNextToEachOther,
-  clearCoords,
-  countNumInColumn,
-  dropJewels,
   findCoordsOfMatches,
   findHorizontalCombos,
   findVerticalCombos,
   getCoordsFromString,
+  computeNextMoves,
+  stringToBoard,
+  checkForPossibleMatches
 } from "../utils.js";
+import boardContext from "../contexts/BoardContext.jsx";
 
 const Jewel = ({
   coord,
@@ -19,16 +20,20 @@ const Jewel = ({
   setBoard,
   setBadMove,
   setScore,
-  score
+  canMove,
+  setCanMove,
+  bazinga,
 }) => {
-  // let selected = false;
-  // const [selected, setSelected] = useState(false);
-  // const [color, setColor] = useState(getRandomColor());
-
+  const {canBazinga, setCanBazinga} = useContext(boardContext);
   const select = (e) => {
-    // console.log(coord, getCoordsFromString(coord));
+    if (!canMove ) {
+      return
+    }
+    let refresh = canBazinga;
+
     if (chosen && chosen === coord) {
       setChosen(null);
+      return;
     }
     if (chosen && areNextToEachOther(chosen, coord)) {
       let clone = JSON.parse(JSON.stringify(board));
@@ -42,14 +47,12 @@ const Jewel = ({
       clone[x2][y2] = temp;
       setBoard(clone);
       setChosen(null);
+      setCanMove(false);
       // console.log(findHorizontalCombos(clone),findVerticalCombos(clone));
       // console.log(typeof(getCoordsFromString(coord).join('')));
       let hor = findHorizontalCombos(clone);
       let ver = findVerticalCombos(clone);
       let all = findCoordsOfMatches(hor, ver, clone);
-      let count = 0;
-      let bazinga = true;
-      let cloneScore = score
       // console.log(hor);
       // console.log(ver);
       // console.log(all);
@@ -59,49 +62,50 @@ const Jewel = ({
         // all.has(getCoordsFromString(chosen).join(""))
         all.size > 0
       ) {
-        while(count < 10 && bazinga) {
-          console.log(count);
-          setBoard(clearCoords(all, clone));
-          // countNumInColumn(all).forEach(el => console.log(el));
-          clone = dropJewels(all,clone);
-          setScore(score + all.size);
-          const check = findCoordsOfMatches(findHorizontalCombos(clone),findVerticalCombos(clone),clone);
-          if (check.size === 0) {
-            bazinga = false;
+        console.clear();
+        const nextMoves = computeNextMoves(clone);
+        // console.log(nextMoves);
+        let pointer = 0;
+        const id = setInterval (() => {
+          if (Array.isArray(nextMoves[pointer])) {
+            const [str,score] = nextMoves[pointer++];
+            // console.log(str,score);
+            setBoard(stringToBoard(str));
+            if (score > 3) {
+              setScore(pre => pre +  300 + ((score - 3) * 150))
+            } else {
+              setScore(pre => pre + 300);
+            }
+          } else {
+            setBoard(stringToBoard(nextMoves[pointer++]));
           }
-          // dropJewels(all,clone);
-          hor = findHorizontalCombos(clone);
-          ver = findVerticalCombos(clone);
-          all = findCoordsOfMatches(hor, ver, clone);
-          setTimeout(() => {
-            setBoard(clone);
-          },count === 0 ? 250 : 500)
-          count++;
-        }
+          if (pointer === nextMoves.length) {
+            clearInterval(id);
+            clone = stringToBoard(nextMoves[pointer-1]);
+            if ((nextMoves.length / 3) >= 3) {
+              setCanBazinga(true);
+              refresh = true;
+            }
+            if (!checkForPossibleMatches(clone) && refresh) {
+              bazinga();
+            }
+            setCanMove(true);
 
+          }
+        },200);
       } else {
         setBadMove(true);
         setTimeout(() => {
           setBoard(original);
           setBadMove(false);
+          setCanMove(true);
         }, 500);
-        
       }
     } else {
       setChosen(coord);
     }
   };
 
-  useEffect(() => {
-    // if (chosen === coord) {
-    //   setSelected((pre) => !pre);
-    //   // console.log(chosen)
-    // } else {
-    //   setSelected(false);
-    // }
-    // console.log(findHorizontalCombos(board));
-    // console.log(findVerticalCombos(board));
-  }, [board]);
 
   return (
     <p

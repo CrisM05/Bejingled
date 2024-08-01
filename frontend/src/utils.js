@@ -1,16 +1,16 @@
+const colors = [
+  "#da0000",
+  "#fe5302",
+  "#d57d05",
+  "#114d00",
+  "#0758fe",
+  "#7d0098",
+  "#a999c3",
+];
 export const getRandomColor = () => {
-  const colors = [
-    "#da0000",
-    "#fe5302",
-    "#d57d05",
-    "#114d00",
-    "#0758fe",
-    "#7d0098",
-    "#a999c3",
-  ];
   const randomNum = Math.floor(Math.random() * 7);
-  // return colors[randomNum];
-  return colors[Math.floor(Math.random() * 7)];
+  return colors[randomNum];
+  // return colors[Math.floor(Math.random() * 7)];
 };
 
 export const generateRandomBoard = () => {
@@ -90,7 +90,7 @@ export const findVerticalCombos = (board) => {
     let count = 1;
     let start = 0;
     for (let i = 1; i < board.length; i++) {
-      if (board[i][j] === board[i - 1][j]) {
+      if (board[i][j] !== 'white' && board[i][j] === board[i - 1][j]) {
         count++;
         if (count >= 3) {
           if (i === board.length - 1) {
@@ -116,7 +116,7 @@ export const findHorizontalCombos = (board) => {
     let count = 1;
     let start = 0;
     for (let j = 1; j < board[i].length; j++) {
-      if (board[i][j] === board[i][j - 1]) {
+      if (board[i][j] !=='white' && board[i][j] === board[i][j - 1]) {
         count++;
         if (count >= 3) {
           if (j === board[i].length - 1) {
@@ -189,14 +189,14 @@ export const dropJewels = (coords, board) => {
       }
     }
     // setTimeout(() => {
-      for (let i = clone.length-1; i >= 0; i--) {
-        for (let j = clone[i].length-1; j >= 0; j--) {
-          if (clone[i][j] === 'white'){
-            // console.log(clone[i][j]);
-            clone[i][j] = getRandomColor();
-          }
-        }
-      }
+    // for (let i = clone.length - 1; i >= 0; i--) {
+    //   for (let j = clone[i].length - 1; j >= 0; j--) {
+    //     if (clone[i][j] === "white") {
+    //       // console.log(clone[i][j]);
+    //       clone[i][j] = getRandomColor();
+    //     }
+    //   }
+    // }
     // },200)
     // if (check.size > 0) {
     //   // return dropJewels(check,clone);
@@ -206,17 +206,17 @@ export const dropJewels = (coords, board) => {
   return clone;
 };
 
-// export const fillBoard = (board) => {
-//   const clone = getBoardClone(board);
-//   for (let i = clone.length - 1; i > 0; i--) {
-//     for (let j = clone[i].length - 1; j >=0; j--) {
-//       if (clone[i][j] === "white") {
-//         clone[i][j] = getRandomColor();
-//       }
-//     }
-//   }
-//   return clone;
-// }
+export const fillBoard = (board) => {
+  const clone = getBoardClone(board);
+  for (let i = clone.length - 1; i >= 0; i--) {
+    for (let j = clone[i].length - 1; j >= 0; j--) {
+      if (clone[i][j] === "white") {
+        clone[i][j] = getRandomColor();
+      }
+    }
+  }
+  return clone;
+};
 
 export const countNumInColumn = (coords) => {
   const tracker = {};
@@ -246,3 +246,228 @@ export const setToArray = (set) => {
 export const getBoardClone = (board) => {
   return JSON.parse(JSON.stringify(board));
 };
+
+export const checkForPossibleMatches = (board) => {
+  for (let i = 0; i < board.length; i++) {
+    for (let j = 0; j < board[i].length; j++) {
+      const jewel = board[i][j];
+
+      // For [X,?,x] matches
+      if (j < board[i].length - 1 && jewel === board[i][j + 2]) {
+        //     [?,x,?]
+        // For [X,?,x] vertical check
+        if (i > 0 && jewel === board[i - 1][j + 1]) {
+          console.log([i, j], [i, j + 2]);
+          return true;
+        }
+        // For [X,?,x] vertical check
+        //     [?,x,?]
+        if (i < board.length - 1 && jewel === board[i + 1][j + 1]) {
+          console.log([i, j], [i, j + 2]);
+          return true;
+        }
+      }
+
+      //For [X]
+      //    [?]
+      //    [x] matches
+      if (i < board.length - 3 && jewel === board[i + 2][j]) {
+        //For [?,X,?]
+        //    [x,?,?]
+        //    [?,x,?]
+        if (j > 0 && jewel === board[i + 1][j - 1]) {
+          console.log([i, j], [i + 2, j]);
+          return true;
+        }
+        //For [?,X,?]
+        //    [?,?,x]
+        //    [?,x,?]
+        if (j < board[i].length - 1 && jewel === board[i + 1][j + 1]) {
+          console.log([i, j], [i + 2, j]);
+          return true;
+        }
+      }
+
+      //For [X,x] matches
+      if (j < board[i].length - 1 && jewel === board[i][j + 1]) {
+        //For [x,?,?,?]
+        //    [?,X,x,?]
+        if (i > 0 && j > 0 && jewel === board[i - 1][j - 1]) {
+          console.log([i, j], [i, j + 1]);
+          return true;
+        }
+        //For [?,?,?,x]
+        //    [?,X,x,?]
+        if (i > 0 && j < board[i].length - 1 && jewel === board[i - 1][j + 2]) {
+          console.log([i, j], [i - 1, j + 1]);
+          return true;
+        }
+        //For [?,X,x,?]
+        //    [x,?,?,?]
+        if (i < board.length - 1 && j > 0 && jewel === board[i + 1][j - 1]) {
+          console.log([i, j], [i, j + 1]);
+          return true;
+        }
+        //For [?,X,x,?]
+        //    [?,?,?,x]
+        if (
+          i < board.length - 1 &&
+          j < board[i].length - 2 &&
+          jewel === board[i + 1][j + 2]
+        ) {
+          console.log([i, j], [i + 1, j + 1]);
+          return true;
+        }
+        //For [x,?,X,x,]
+        if (j > 1 && jewel === board[i][j - 2]) {
+          console.log([i, j], [i, j + 1]);
+          return true;
+        }
+        //For [X,x,?,x]
+        if (j < board[i].length - 2 && jewel === board[i][j + 3]) {
+          console.log([i, j], [i, j + 3]);
+          return true;
+        }
+      }
+
+      //For [X]
+      //    [x]
+      if (i < board.length - 1 && jewel === board[i + 1][j]) {
+        //For [x,?,?]
+        //    [?,X,?]
+        //    [?,x,?]
+        if (i > 0 && j > 0 && jewel === board[i - 1][j - 1]) {
+          console.log([i, j], [i + 1, j]);
+          return true;
+        }
+        //For [?,?,x]
+        //    [?,X,?]
+        //    [?,x,?]
+        if (i > 0 && j < board[i].length - 1 && jewel === board[i - 1][j + 1]) {
+          console.log([i, j], [i + 1, j]);
+          return true;
+        }
+        //    [x]
+        //For [?]
+        //    [X]
+        //    [x]
+        if (i > 1 && jewel === board[i - 2][j]) {
+          console.log("randal");
+          console.log([i, j], [i + 1, j]);
+          return true;
+        }
+        //For [?,X,?]
+        //    [?,x,?]
+        //    [x,?,?]
+        if (i < board.length - 2 && j > 0 && jewel === board[i + 2][j - 1]) {
+          console.log([i,j],[i+2,j-1]);
+          return true;
+        }
+        //For [?,X,?]
+        //    [?,x,?]
+        //    [?,?,x]
+        if (
+          i < board.length - 2 &&
+          j < board[i].length &&
+          jewel === board[i + 2][j + 1]
+        ) {
+          console.log([i, j],[i + 2, j + 1]);
+          return true;
+        }
+        //    [X]
+        //For [x]
+        //    [?]
+        //    [x]
+        if (i < board.length - 3 && jewel === board[i + 3][j]) {
+          console.log([i,j],[i+3,j]);
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
+export const computeNextMoves = (board) => {
+  const output = [];
+  let clone = getBoardClone(board);
+
+  let hor = findHorizontalCombos(clone);
+  let ver = findVerticalCombos(clone);
+  let all = findCoordsOfMatches(hor, ver, clone);
+
+  while (all.size > 0) {
+    clone = clearCoords(all, clone);
+    output.push([boardToString(clone), all.size]);
+    clone = dropJewels(all, clone);
+    output.push(boardToString(clone));
+    // clone = fillBoard(clone);
+    // output.push(boardToString(clone));
+    hor = findHorizontalCombos(clone);
+    ver = findVerticalCombos(clone);
+    all = findCoordsOfMatches(hor, ver, clone);
+  }
+
+  return output;
+};
+
+export const boardToString = (board) => {
+  let output = "";
+  for (const row of board) {
+    for (const jewel of row) {
+      output += jewel === "white" ? 9 : colors.indexOf(jewel);
+    }
+  }
+  return output;
+};
+
+export const stringToBoard = (str) => {
+  const output = [[], [], [], [], [], [], [], []];
+
+  for (let i = 0; i < str.length; i++) {
+    output[Math.floor(i / 8)].push(
+      Number(str[i]) === 9 ? "white" : colors[Number(str[i])]
+    );
+  }
+  // console.log(output);
+  return output;
+};
+
+export const clearBoard = (board) => {
+  const clone = getBoardClone(board);
+
+  for (const row of clone) {
+    for (let i = 0; i < row.length; i++) {
+      row[i]= 'white';
+    }
+  }
+  
+  return clone;
+}
+
+export const bazingaBoard = (board) => {
+  const clone = clearBoard(board);
+  const output = [boardToString(clone)];
+  const newBoard = generateRandomBoard();
+
+  while(newBoard.length > 0) {
+    if (clone[0][0] === 'white' && clone[1][0] === 'white') {
+      clone[0] = newBoard.pop();
+      output.push(boardToString(clone));
+    } else {
+      for (let i = clone.length - 2; i >= 0; i--) {
+        if (clone[i][0] !== 'white' && clone[i+1][0] === 'white') {
+          clone[i+1] = clone[i].map(el => el);
+          clone[i] = Array(8).fill('white');
+        }
+      }
+      output.push(boardToString(clone));
+      if (clone[1][0] !== 'white' && clone[2][0] !== 'white') {
+        clone[0] = newBoard.pop();
+        output.push(boardToString(clone));
+      }
+    }
+  }
+
+  return output;
+}

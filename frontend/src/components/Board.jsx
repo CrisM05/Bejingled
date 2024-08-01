@@ -1,41 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Jewel from "./Jewel";
 import "../styles/Board.scss";
-import { findCoordsOfMatches, findHorizontalCombos, findVerticalCombos, flattenBoard, generateRandomBoard } from "../utils";
+import { bazingaBoard, stringToBoard } from "../utils";
+import boardContext from "../contexts/BoardContext";
 
 const Board = ({ length, height }) => {
-  const [board, setBoard] = useState(
-    generateRandomBoard(Array(height).fill(Array(length)))
-  );
+  const [board, setBoard] = useState(Array(8).fill(Array(8).fill("white")));
   // const [hCombos, setHCombos] = useState([]);
   // const [vCombos, setVCombos] = useState([]);
+  const [canMove, setCanMove] = useState(false);
   const [chosen, setChosen] = useState(null);
   const [badMove, setBadMove] = useState(false);
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
   const [score, setScore] = useState(0);
+  const { setCanBazinga } = useContext(boardContext);
+
+  const bazinga = () => {
+    const moves = bazingaBoard(board);
+    setCanMove(false);
+    // console.log(moves);
+    let pointer = 0;
+    const id = setInterval(() => {
+      setBoard(stringToBoard(moves[pointer++]));
+      // console.log(pointer);
+      if (pointer === moves.length) {
+        clearInterval(id);
+        setCanMove(true);
+        setCanBazinga(false);
+      }
+    }, 70);
+  };
 
   useEffect(() => {
-    setBoard(generateRandomBoard(board));
-    // console.log(board);
+    bazinga()
   }, []);
 
-  useEffect(() => {
-    // const horz = findHorizontalCombos(board); 
-    // const vert = findVerticalCombos(board)
-    // setHCombos(horz);
-    // setVCombos(vert);
-    // if (horz.length > 0 || vert.length > 0) {
-    //   console.log(findCoordsOfMatches(horz,vert,board));
-    // }
-  },[board])
-  
+
   return (
     <>
       <h2>Score:</h2>
       <p>{score}</p>
-      <div className={`board ${badMove ? "badMove" : ''}`}>
+      <div className={`board ${badMove ? "badMove" : ""}`}>
         {board.map((row, idx) => (
-          <span className="row" id={`row${idx}`}>
+          <span key={idx} className="row" id={`row${idx}`}>
             {row.map((el, i) => (
               <Jewel
                 key={i}
@@ -48,6 +55,9 @@ const Board = ({ length, height }) => {
                 setBadMove={setBadMove}
                 setScore={setScore}
                 score={score}
+                canMove={canMove}
+                setCanMove={setCanMove}
+                bazinga={bazinga}
               />
             ))}
           </span>
