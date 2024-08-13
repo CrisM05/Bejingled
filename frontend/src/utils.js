@@ -447,10 +447,12 @@ export const clearBoard = (board) => {
   return clone;
 }
 
-export const bazingaBoard = (board) => {
+export const bazingaBoard = (board, initial = false) => {
   const clone = clearBoard(board);
   const output = [boardToString(clone)];
-  const newBoard = generateRandomBoard();
+  const newBoard = initial !== false ? stringToBoard(initial) : generateRandomBoard();
+  // console.log(initial);
+  // console.log(stringToBoard(initial));
 
   while(newBoard.length > 0) {
     if (clone[0][0] === 'white' && clone[1][0] === 'white') {

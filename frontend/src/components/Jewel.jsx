@@ -7,9 +7,10 @@ import {
   getCoordsFromString,
   computeNextMoves,
   stringToBoard,
-  checkForPossibleMatches
+  checkForPossibleMatches,
 } from "../utils.js";
 import boardContext from "../contexts/BoardContext.jsx";
+import { getFromLocalStorage, setLocalStorage } from "../localStorage.js";
 
 const Jewel = ({
   coord,
@@ -24,10 +25,10 @@ const Jewel = ({
   setCanMove,
   bazinga,
 }) => {
-  const {canBazinga, setCanBazinga , setGameJover} = useContext(boardContext);
+  const { canBazinga, setCanBazinga, setGameJover } = useContext(boardContext);
   const select = (e) => {
-    if (!canMove ) {
-      return
+    if (!canMove) {
+      return;
     }
     let refresh = canBazinga;
 
@@ -62,32 +63,43 @@ const Jewel = ({
         // all.has(getCoordsFromString(chosen).join(""))
         all.size > 0
       ) {
-        console.clear();
+        // console.clear();
         const nextMoves = computeNextMoves(clone);
         // console.log(nextMoves);
         let pointer = 0;
-        const id = setInterval (() => {
+        let matches = 0;
+        const id = setInterval(() => {
           if (Array.isArray(nextMoves[pointer])) {
-            const [str,score] = nextMoves[pointer++];
+            const [str, score] = nextMoves[pointer++];
             // console.log(str,score);
             setBoard(stringToBoard(str));
+            setLocalStorage("userBoard", str);
+            // console.log(getFromLocalStorage('userBoard'));
+            // console.log(str)
             if (score > 3) {
-              setScore(pre => pre +  300 + ((score - 3) * 150))
+              setScore((pre) => pre + 300 + (score - 3) * 150);
+              matches += Math.floor(score / 3);
             } else {
-              setScore(pre => pre + 300);
+              setScore((pre) => pre + 300);
+              matches++;
             }
           } else {
             setBoard(stringToBoard(nextMoves[pointer++]));
+            // console.log(setLocalStorage("userBoard", nextMoves[pointer]));
+            getFromLocalStorage("userBoard");
+            // console.log(nextMoves[pointer]);
           }
           if (pointer === nextMoves.length) {
             clearInterval(id);
-            clone = stringToBoard(nextMoves[pointer-1]);
-            if ((nextMoves.length / 3) >= 3) {
+            clone = stringToBoard(nextMoves[pointer - 1]);
+            setLocalStorage('userBoard',nextMoves[pointer-1])
+            console.log(matches);
+            if (matches >= 4) {
               setCanBazinga(true);
               refresh = true;
             }
-            if (!checkForPossibleMatches(clone) ) {
-              if (refresh ) {
+            if (!checkForPossibleMatches(clone)) {
+              if (refresh) {
                 console.log("BAZINGA");
                 bazinga();
               } else {
@@ -95,9 +107,8 @@ const Jewel = ({
               }
             }
             setCanMove(true);
-
           }
-        },200);
+        }, 200);
       } else {
         setBadMove(true);
         setTimeout(() => {
@@ -110,7 +121,6 @@ const Jewel = ({
       setChosen(coord);
     }
   };
-
 
   return (
     <p

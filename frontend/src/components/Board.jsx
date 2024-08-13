@@ -3,6 +3,7 @@ import Jewel from "./Jewel";
 import "../styles/Board.scss";
 import { bazingaBoard, stringToBoard, checkForPossibleMatches } from "../utils";
 import boardContext from "../contexts/BoardContext";
+import { getFromLocalStorage, setLocalStorage } from "../localStorage";
 
 const Board = ({ length, height }) => {
   const [board, setBoard] = useState(Array(8).fill(Array(8).fill("white")));
@@ -12,12 +13,13 @@ const Board = ({ length, height }) => {
   const [chosen, setChosen] = useState(null);
   const [badMove, setBadMove] = useState(false);
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
-  const [score, setScore] = useState(0);
-  const { canBazinga, setCanBazinga, setYippie, gameJover } = useContext(boardContext);
+  const [score, setScore] = getFromLocalStorage('score') || useState(0);
+  const { canBazinga, setCanBazinga, setYippie, gameJover, setGameJover } =
+    useContext(boardContext);
 
-  const bazinga = (yip = true) => {
-    let moves = bazingaBoard(board);
-    while(!checkForPossibleMatches(stringToBoard(moves[moves.length-1]))) {
+  const bazinga = (yip = true, initial = false) => {
+    let moves = bazingaBoard(board,initial);
+    while (!checkForPossibleMatches(stringToBoard(moves[moves.length - 1]))) {
       moves = bazingaBoard(board);
     }
     setCanMove(false);
@@ -32,14 +34,17 @@ const Board = ({ length, height }) => {
         setCanMove(true);
         setCanBazinga(false);
         setYippie(false);
+        setLocalStorage('userBoard',moves[pointer-1]);
+        setGameJover(false);
       }
     }, 70);
   };
 
   useEffect(() => {
-    bazinga(false)
+    const localBoard = getFromLocalStorage("userBoard");
+    // console.log(localBoard.length);
+    bazinga(false, localBoard && localBoard !== 'undefined' && localBoard.length === 64 ? localBoard : false);
   }, []);
-
 
   return (
     <>
