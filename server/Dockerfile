@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-jdk-alpine
 ARG DB_URL
 ARG DB_USER
 ARG DB_PASS
