@@ -475,3 +475,61 @@ export const bazingaBoard = (board, initial = false) => {
 
   return output;
 }
+
+export const deleteOptions = {
+  method: "DELETE",
+};
+
+export const getPostOptions = (body) => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
+export const getPatchOptions = (body) => ({
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
+export const fetchHandler = async (url, options = {}) => {
+  try {
+    const response = await fetch(url, options);
+    const { ok, status, headers } = response;
+    if (!ok)
+      throw new Error(`Fetch failed with status - ${status}`, {
+        cause: status,
+      });
+
+    const isJson = (headers.get("content-type") || "").includes(
+      "application/json"
+    );
+    const responseData = await (isJson ? response.json() : response.text());
+
+    return [responseData, null];
+  } catch (error) {
+    console.warn(error);
+    return [null, error];
+  }
+};
+
+export const getBearHeader = () => {
+  return {
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("token")}`
+    }
+  };
+}
+
+export const formatNumString = (str) => {
+  str = `${str}`;
+  let output = '';
+  for(let i = str.length-1, j = 0; i >= 0; i--) {
+    output = str[i] + output;
+    j++;
+    if (j % 3 === 0 && i !== 0) {
+      output = "," + output;
+    }
+  }
+  return output;
+}

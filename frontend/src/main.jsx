@@ -5,11 +5,11 @@ import BoardContextProvider from "./contexts/BoardContextProvider.jsx";
 import { BrowserRouter as Router } from "react-router-dom";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <Router>
       <BoardContextProvider>
         <App />
       </BoardContextProvider>
     </Router>
-  </React.StrictMode>
+  /* </React.StrictMode> */
 );

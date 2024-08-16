@@ -1,7 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import Jewel from "./Jewel";
 import "../styles/Board.scss";
-import { bazingaBoard, stringToBoard, checkForPossibleMatches } from "../utils";
+import {
+  bazingaBoard,
+  stringToBoard,
+  checkForPossibleMatches,
+  fetchHandler,
+  getPostOptions,
+  formatNumString,
+} from "../utils";
 import boardContext from "../contexts/BoardContext";
 import { getFromLocalStorage, setLocalStorage } from "../localStorage";
 
@@ -13,12 +20,19 @@ const Board = ({ length, height }) => {
   const [chosen, setChosen] = useState(null);
   const [badMove, setBadMove] = useState(false);
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
-  const [score, setScore] = getFromLocalStorage('score') || useState(0);
-  const { canBazinga, setCanBazinga, setYippie, gameJover, setGameJover } =
-    useContext(boardContext);
+  const [score, setScore] = useState(0);
+  const {
+    canBazinga,
+    setCanBazinga,
+    setYippie,
+    gameJover,
+    setGameJover,
+    setUserData,
+    userData
+  } = useContext(boardContext);
 
-  const bazinga = (yip = true, initial = false) => {
-    let moves = bazingaBoard(board,initial);
+  const bazinga = (yip = true, initial = false, gtg = false) => {
+    let moves = bazingaBoard(board, initial);
     while (!checkForPossibleMatches(stringToBoard(moves[moves.length - 1]))) {
       moves = bazingaBoard(board);
     }
@@ -32,19 +46,46 @@ const Board = ({ length, height }) => {
       if (pointer === moves.length) {
         clearInterval(id);
         setCanMove(true);
-        setCanBazinga(false);
+        setCanBazinga(gtg);
         setYippie(false);
-        setLocalStorage('userBoard',moves[pointer-1]);
         setGameJover(false);
       }
     }, 70);
   };
 
   useEffect(() => {
-    const localBoard = getFromLocalStorage("userBoard");
-    // console.log(localBoard.length);
-    bazinga(false, localBoard && localBoard !== 'undefined' && localBoard.length === 64 ? localBoard : false);
+    const token = sessionStorage.getItem("token");
+    const doTheRoar = async () => {
+      const [idObj, er] = await fetchHandler("/api/users/me", {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      });
+      const [data, error] = await fetchHandler(`/api/users/${idObj.id}`, {
+        header: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      });
+      setUserData (data);
+      const savedBoard = data.board;
+      setCanBazinga(data.bazinga);
+      bazinga(false, token ? savedBoard : false, data.bazinga);
+      setScore(data.score);
+    };
+    if (token) {
+      doTheRoar();
+    } else {
+      bazinga(false)
+    }
   }, []);
+
+  const startOver = async () => {
+    bazinga(false);
+    setScore(0);
+    await fetchHandler(`/api/users/${userData.id}/score`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem('token')}`
+      },
+      body: "0"
+    })
+  }
 
   return (
     <>
@@ -72,10 +113,10 @@ const Board = ({ length, height }) => {
         ))}
         <span id="score-wrapper">
           <h2>Score:</h2>
-          <p>{score}</p>
+          <p>{formatNumString(score)}</p>
         </span>
         {canBazinga && <p id="bazinga">BAZINGA</p>}
-        {gameJover && <button onClick={() => bazinga(false)}>Replay?</button>}
+        {gameJover && <button onClick={startOver}>Replay?</button>}
       </div>
     </>
   );

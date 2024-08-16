@@ -19,7 +19,7 @@ public class BejingledApplication {
 		FilterRegistrationBean<AuthFilter> registrationBean = new FilterRegistrationBean<>();
 		AuthFilter authFilter = new AuthFilter();
 		registrationBean.setFilter(authFilter);
-		registrationBean.addUrlPatterns("/api/users/{id}/*");
+		registrationBean.addUrlPatterns("/api/users/{id}/*", "/api/users/me", "/api/users/{id}");
 		return registrationBean;
 	}
 	

@@ -1,7 +1,9 @@
 package com.capstone.bejingled.services;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
-
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public User registerUser(String email, String password) throws EtAuthException {
+  public User registerUser(String email, String password, String displayName) throws EtAuthException {
     Pattern pattern = Pattern.compile("^(.+)@(.+)$");
     if (email != null)
       email = email.toLowerCase();
@@ -48,7 +50,7 @@ public class UserServiceImpl implements UserService {
       throw new EtAuthException("Email already in use.");
     }
 
-    User user = userRepository.save(new User(email, BCrypt.hashpw(password, BCrypt.gensalt(10))));
+    User user = userRepository.save(new User(email, BCrypt.hashpw(password, BCrypt.gensalt(10)), displayName));
     return userRepository.findById(user.getId());
   }
 
@@ -74,5 +76,24 @@ public class UserServiceImpl implements UserService {
     }
     userRepository.save(updatedUser);
     
+  }
+
+  @Override
+  public void updateBazinga(long id, User updatedUser) throws EtAuthException {
+    User user = userRepository.findById(id);
+    if (user == null) {
+      throw new EtAuthException("User does not exit");
+    }
+    userRepository.save(updatedUser);
+  }
+
+  @Override
+  public Map<String, Long> getHighScores() {
+    List<User> allUsers = userRepository.findByOrderByHighScoreAsc();
+    Map<String, Long> map = new HashMap<>();
+    for (User currentUser : allUsers) {
+      map.put(currentUser.getDisplayName(), (Long) currentUser.getHighScore());
+    }
+    return map;
   }
 }

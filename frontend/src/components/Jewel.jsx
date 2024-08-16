@@ -8,9 +8,9 @@ import {
   computeNextMoves,
   stringToBoard,
   checkForPossibleMatches,
+  fetchHandler,
 } from "../utils.js";
 import boardContext from "../contexts/BoardContext.jsx";
-import { getFromLocalStorage, setLocalStorage } from "../localStorage.js";
 
 const Jewel = ({
   coord,
@@ -24,8 +24,11 @@ const Jewel = ({
   canMove,
   setCanMove,
   bazinga,
+  score
 }) => {
-  const { canBazinga, setCanBazinga, setGameJover } = useContext(boardContext);
+  const { canBazinga, setCanBazinga, setGameJover, userId, userData } =
+    useContext(boardContext);
+  let localScore = score;
   const select = (e) => {
     if (!canMove) {
       return;
@@ -68,33 +71,44 @@ const Jewel = ({
         // console.log(nextMoves);
         let pointer = 0;
         let matches = 0;
-        const id = setInterval(() => {
+        const id = setInterval(async () => {
           if (Array.isArray(nextMoves[pointer])) {
             const [str, score] = nextMoves[pointer++];
             // console.log(str,score);
             setBoard(stringToBoard(str));
-            setLocalStorage("userBoard", str);
             // console.log(getFromLocalStorage('userBoard'));
             // console.log(str)
             if (score > 3) {
-              setScore((pre) => pre + 300 + (score - 3) * 150);
+              localScore+= 300 + (score -3) * 150
+              setScore(localScore);
               matches += Math.floor(score / 3);
             } else {
-              setScore((pre) => pre + 300);
+              localScore += 300;
+              setScore(localScore);
               matches++;
             }
           } else {
             setBoard(stringToBoard(nextMoves[pointer++]));
             // console.log(setLocalStorage("userBoard", nextMoves[pointer]));
-            getFromLocalStorage("userBoard");
             // console.log(nextMoves[pointer]);
           }
           if (pointer === nextMoves.length) {
             clearInterval(id);
             clone = stringToBoard(nextMoves[pointer - 1]);
-            setLocalStorage('userBoard',nextMoves[pointer-1])
-            console.log(matches);
             if (matches >= 4) {
+              if (userId) {
+                if (userData.bazinga !== true) {
+                  await fetchHandler(`/api/users/${userId}/bazinga`, {
+                    method: "PATCH",
+                    headers: {
+                      Authorization: `Bearer ${sessionStorage.getItem(
+                        "token"
+                      )}`,
+                    },
+                    body: "true",
+                  });
+                }
+              }
               setCanBazinga(true);
               refresh = true;
             }
@@ -102,9 +116,36 @@ const Jewel = ({
               if (refresh) {
                 console.log("BAZINGA");
                 bazinga();
+                await fetchHandler(`/api/users/${userId}/bazinga`, {
+                  method: "PATCH",
+                  headers: {
+                    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                  },
+                  body: "false",
+                });
               } else {
                 setGameJover(true);
               }
+            }
+            if (userId) {
+              await fetchHandler(`/api/users/${userId}/board`, {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${
+                    sessionStorage.getItem("token") || ""
+                  }`,
+                },
+                body: nextMoves[pointer - 1],
+              });
+              await fetchHandler(`/api/users/${userId}/score`, {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                },
+                body: `${localScore}`,
+              });
             }
             setCanMove(true);
           }

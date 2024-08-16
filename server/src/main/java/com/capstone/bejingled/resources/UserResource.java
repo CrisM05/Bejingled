@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,12 +40,13 @@ public class UserResource {
         .claim("userId", user.getId())
         .claim("email", user.getEmail())
         .setIssuedAt(new Date(timestamp))
-        .setExpiration(new Date(timestamp + Constants.TOKEN_VALIDITY))
+        .setExpiration(new Date((timestamp + Constants.TOKEN_VALIDITY)))
         .signWith(Constants.API_SECRET_KEY, SignatureAlgorithm.HS256)
         .compact();
 
     Map<String, String> map = new HashMap<>();
     map.put("token", token);
+    map.put("userId", Long.toString(user.getId()));
     return map;
   };
 
@@ -52,8 +54,9 @@ public class UserResource {
   public ResponseEntity<Map<String, String>> registerUser(@RequestBody Map<String, Object> userMap) {
     String email = (String) userMap.get("email");
     String password = (String) userMap.get("password");
+    String displayName = (String) userMap.get("displayName");
 
-    User user = userService.registerUser(email, password);
+    User user = userService.registerUser(email, password, displayName);
     return new ResponseEntity<>(generateJWTToken(user), HttpStatus.OK);
   }
 
@@ -77,46 +80,48 @@ public class UserResource {
   }
 
   @PatchMapping("/{id}/board")
-  public ResponseEntity<Map<String, String>> updateUserBoard (@PathVariable long id, @RequestBody Map<String, Object> boardMap) {
+  public ResponseEntity<Map<String, String>> updateUserBoard(@PathVariable long id, @RequestBody String body) {
     User user = userService.findUserById(id);
     if (user == null) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    Map <String, String> map = new HashMap<>();
-    String board = (String) boardMap.get("board");
-    user.setBoard(board);
+    Map<String, String> map = new HashMap<>();
+    user.setBoard(body);
     userService.updateBoard(id, user);
     map.put("message", "board updated");
     return new ResponseEntity<>(map, HttpStatus.OK);
   }
-  
+
   @GetMapping("/{id}/score")
-  public ResponseEntity<Map<String, Long>> getUserScore (@PathVariable long id) {
+  public ResponseEntity<Map<String, Long>> getUserScore(@PathVariable long id) {
     User user = userService.findUserById(id);
     if (user == null) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    Map<String,Long> map = new HashMap<>();
+    Map<String, Long> map = new HashMap<>();
     map.put("score", user.getScore());
     return new ResponseEntity<>(map, HttpStatus.OK);
   }
 
   @PatchMapping("/{id}/score")
-  public ResponseEntity<Map<String,String>> updateUserScore (@PathVariable long id, @RequestBody Map<String, Object> scoreMap) {
+  public ResponseEntity<Map<String, String>> updateUserScore(@PathVariable long id, @RequestBody String body) {
     User user = userService.findUserById(id);
     if (user == null) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    long score = (long) scoreMap.get("score");
-    user.setScore(score);
+    long scoreLong = Long.parseLong(body);
+    user.setScore(scoreLong);
+    if (scoreLong > user.getHighScore()) {
+      user.setHighScore(scoreLong);
+    }
     userService.updateScore(id, user);
-    Map<String,String> map = new HashMap<>();
+    Map<String, String> map = new HashMap<>();
     map.put("message", "score updated");
     return new ResponseEntity<>(map, HttpStatus.OK);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Map<String,Object>> getUser (@PathVariable long id) {
+  public ResponseEntity<Map<String, Object>> getUser(@PathVariable long id) {
     User user = userService.findUserById(id);
     if (user == null) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -124,7 +129,43 @@ public class UserResource {
     Map<String, Object> map = new HashMap<>();
     map.put("board", user.getBoard());
     map.put("score", user.getScore());
-    return new ResponseEntity<>(map,HttpStatus.OK);
+    map.put("displayName", user.getDisplayName());
+    map.put("bazinga", user.getBazinga());
+    map.put("highScore", user.getHighScore());
+    return new ResponseEntity<>(map, HttpStatus.OK);
+  }
+
+  @GetMapping("/me")
+  public ResponseEntity<Map<String, Integer>> getUserId(@RequestAttribute Object userId) {
+    Integer id = (Integer) userId;
+
+    if (userService.findUserById(id) == null) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    Map<String, Integer> map = new HashMap<>();
+    map.put("id", (id));
+    return new ResponseEntity<>(map, HttpStatus.OK);
+
+  }
+
+  @PatchMapping("/{id}/bazinga")
+  public ResponseEntity<Map<String, String>> updateBazinga(@PathVariable long id, @RequestBody String newBazinga) {
+    User user = userService.findUserById(id);
+    if (user == null) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    boolean real = Boolean.parseBoolean(newBazinga);
+    user.setBazinga(real);
+    userService.updateBazinga(id, user);
+    Map<String,String> map = new HashMap<>();
+    map.put("message", "Bazinga updated to" + newBazinga);
+    return new ResponseEntity<>(map, HttpStatus.OK);
+  }
+
+  @GetMapping("/highScores")
+  public ResponseEntity<Map<String, Long>> getHighScore() {
+    Map<String, Long> scores = userService.getHighScores();
+    return new ResponseEntity<>(scores, HttpStatus.OK);
   }
   
 }

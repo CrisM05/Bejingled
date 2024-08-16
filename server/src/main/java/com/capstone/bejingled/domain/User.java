@@ -21,19 +21,28 @@ public class User {
   private String email;
   @Column(name = "password", nullable = false)
   private String password;
+  @Column (name = "displayName")
+  private String displayName;
   @Column(name = "board")
   private String board;
   @Column(name = "score")
   private long score;
+  @Column(name = "bazinga")
+  private boolean bazinga;
+  @Column (name = "high Score")
+  private long highScore;
 
   protected User() {
   }
 
-  public User(String email, String password) {
+  public User(String email, String password, String displayName) {
     this.email = email;
     this.password = password;
     this.board = "";
     this.score = 0;
+    this.displayName = displayName;
+    this.bazinga = false;
+    this.highScore = 0;
   }
 
   public Integer getId() {
@@ -75,5 +84,28 @@ public class User {
   public void setScore(long score) {
     this.score = score;
   }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
   
+  public void setBazinga(boolean bazinga) {
+    this.bazinga = bazinga;
+  }
+
+  public boolean getBazinga() {
+    return bazinga;
+  }
+
+  public long getHighScore() {
+    return highScore;
+  }
+
+  public void setHighScore(long highScore) {
+    this.highScore = highScore;
+  }
 }
