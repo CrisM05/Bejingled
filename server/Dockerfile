@@ -3,7 +3,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk-slim
 ARG DB_URL
 ARG DB_USER
 ARG DB_PASS
